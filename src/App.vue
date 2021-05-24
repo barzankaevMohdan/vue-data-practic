@@ -21,9 +21,21 @@ export default {
     }
   },
   methods: {
-    createPerson() {
-      // https://vue-data-284a7-default-rtdb.firebaseio.com/
-      // this.name
+    async createPerson() {
+      const response = await fetch('https://vue-data-284a7-default-rtdb.firebaseio.com/people.json',{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          firstName: this.name
+        })
+      })
+
+      const firebaseData = await response.json()
+
+      console.log(firebaseData)
+      this.name = ''
     }
   }
 }
