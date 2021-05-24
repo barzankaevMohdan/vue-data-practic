@@ -10,14 +10,22 @@
 
       <button class="btn primary" :disabled="name.length === 0">Create</button>
     </form>
+
+    <app-people-list
+    :people="people"
+    @load="loadPeople"
+    ></app-people-list>
   </div>
 </template>
 
 <script>
+import AppPeopleList from './components/AppPeopleList'
+
 export default {
   data() {
     return {
-      name: ''
+      name: '',
+      people: [1]
     }
   },
   methods: {
@@ -37,7 +45,8 @@ export default {
       console.log(firebaseData)
       this.name = ''
     }
-  }
+  },
+  components: {AppPeopleList}
 }
 </script>
 
