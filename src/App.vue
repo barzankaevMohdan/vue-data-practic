@@ -25,7 +25,7 @@ export default {
   data() {
     return {
       name: '',
-      people: [1]
+      people: []
     }
   },
   methods: {
@@ -39,11 +39,20 @@ export default {
           firstName: this.name
         })
       })
-
-      const firebaseData = await response.json()
-
-      console.log(firebaseData)
+      await response.json()
       this.name = ''
+    },
+    async loadPeople() {
+      const response = await fetch ('https://vue-data-284a7-default-rtdb.firebaseio.com/people.json',{
+        method: 'GET'
+      })
+      const firebaseData = await response.json()
+      this.people = Object.keys(firebaseData).map(key => {
+        return {
+          id: key,
+          firstName: firebaseData[key].firstName
+        }
+      })
     }
   },
   components: {AppPeopleList}
