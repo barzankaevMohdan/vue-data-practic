@@ -1,5 +1,9 @@
 <template>
   <div class="container">
+    <app-allert
+    :alert="alert"
+    @close="alert = null"
+    ></app-allert>
     <form class="card" @submit.prevent="createPerson">
       <h2>Работа с базой данных</h2>
 
@@ -14,19 +18,25 @@
     <app-people-list
     :people="people"
     @load="loadPeople"
+    @remove="removePerson"
     ></app-people-list>
   </div>
 </template>
 
 <script>
 import AppPeopleList from './components/AppPeopleList'
+import appAllert from './components/AppAlert'
 
 export default {
   data() {
     return {
       name: '',
-      people: []
+      people: [],
+      alert: null
     }
+  },
+  mounted() {
+    this.loadPeople()
   },
   methods: {
     async createPerson() {
@@ -39,23 +49,46 @@ export default {
           firstName: this.name
         })
       })
-      await response.json()
+      const firebaseData = await response.json()
+
+      this.people.push({
+        firstName: this.name,
+        id: firebaseData.name
+      })
       this.name = ''
     },
     async loadPeople() {
-      const response = await fetch ('https://vue-data-284a7-default-rtdb.firebaseio.com/people.json',{
+      try{
+        const response = await fetch ('https://vue-data-284a7-default-rtdb.firebaseio.com/people.json',{
         method: 'GET'
-      })
-      const firebaseData = await response.json()
-      this.people = Object.keys(firebaseData).map(key => {
-        return {
-          id: key,
-          firstName: firebaseData[key].firstName
+        })
+        const firebaseData = await response.json()
+        if(!firebaseData) {
+          throw new Error('Список людей пуст')
         }
+        this.people = Object.keys(firebaseData).map(key => {
+          return {
+            id: key,
+            ...firebaseData[key]
+          }
       })
+      } catch (e) {
+        this.alert = {
+          type: 'danger',
+          title: 'Ошибка',
+          text: e.message
+        }
+      }
+    },
+    async removePerson(id) {
+      const response = await fetch (`https://vue-data-284a7-default-rtdb.firebaseio.com/people/${id}.json`,{
+        method: 'DELETE'
+      })
+      await response.json()
+      this.people = this.people.filter(person => person.id !== id)
     }
   },
-  components: {AppPeopleList}
+  components: {AppPeopleList, appAllert}
 }
 </script>
 
