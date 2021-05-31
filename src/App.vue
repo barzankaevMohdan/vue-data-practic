@@ -15,7 +15,10 @@
       <button class="btn primary" :disabled="name.length === 0">Create</button>
     </form>
 
+    <app-loader v-if="loading"></app-loader>
+
     <app-people-list
+    v-else
     :people="people"
     @load="loadPeople"
     @remove="removePerson"
@@ -25,14 +28,16 @@
 
 <script>
 import AppPeopleList from './components/AppPeopleList'
-import appAllert from './components/AppAlert'
+import AppAllert from './components/AppAlert'
+import AppLoader from './components/AppLoader'
 
 export default {
   data() {
     return {
       name: '',
       people: [],
-      alert: null
+      alert: null,
+      loading: false
     }
   },
   mounted() {
@@ -59,6 +64,7 @@ export default {
     },
     async loadPeople() {
       try{
+        this.loading = true
         const response = await fetch ('https://vue-data-284a7-default-rtdb.firebaseio.com/people.json',{
         method: 'GET'
         })
@@ -72,23 +78,35 @@ export default {
             ...firebaseData[key]
           }
       })
+      this.loading = false
       } catch (e) {
         this.alert = {
           type: 'danger',
           title: 'Ошибка',
           text: e.message
         }
+        this.loading = false
       }
     },
     async removePerson(id) {
-      const response = await fetch (`https://vue-data-284a7-default-rtdb.firebaseio.com/people/${id}.json`,{
+      try {
+        const name = this.people.find((person) => person.id === id).firstName
+        const response = await fetch (`https://vue-data-284a7-default-rtdb.firebaseio.com/people/${id}.json`,{
         method: 'DELETE'
-      })
-      await response.json()
-      this.people = this.people.filter(person => person.id !== id)
+        })
+        await response.json()
+        this.people = this.people.filter(person => person.id !== id)
+        this.alert = {
+          type: 'primary',
+          title: 'Успешно',
+          text: `Пользователь "${name}" успешно удален.`
+        }
+      } catch (e) {
+
+      }
     }
   },
-  components: {AppPeopleList, appAllert}
+  components: {AppPeopleList, AppAllert, AppLoader}
 }
 </script>
 
